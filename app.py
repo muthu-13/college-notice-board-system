@@ -15,12 +15,12 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print(f"Using PostgreSQL database")
 else:
     # Use SQLite for local development
     basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "college_notices.db")}'
-    print(f"Using SQLite database")
+    db_path = os.path.join(basedir, "instance", "college_notices.db")
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -28,7 +28,11 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': 300,
 }
 
-db = SQLAlchemy(app)
+try:
+    db = SQLAlchemy(app)
+except Exception as e:
+    print(f"Database initialization error: {e}")
+    db = SQLAlchemy(app)
 
 # Initialize database tables
 def init_database():
@@ -36,6 +40,8 @@ def init_database():
     try:
         with app.app_context():
             db.create_all()
+            # Import User here to avoid circular import
+            from app import User
             # Create default admin if doesn't exist
             admin = User.query.filter_by(username='admin').first()
             if not admin:
@@ -48,6 +54,11 @@ def init_database():
                 )
                 db.session.add(admin)
                 db.session.commit()
+                print("✓ Default admin created")
+            else:
+                print("✓ Admin already exists")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
                 print("✓ Default admin created")
     except Exception as e:
         print(f"Database initialization error: {e}")
