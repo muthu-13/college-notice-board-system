@@ -165,6 +165,22 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Auto-create admin if not exists
+    try:
+        db.create_all()
+        if not User.query.filter_by(username='admin').first():
+            admin = User(
+                username='admin',
+                email='admin@college.edu',
+                password=generate_password_hash('admin123'),
+                role='admin',
+                department='Administration'
+            )
+            db.session.add(admin)
+            db.session.commit()
+    except:
+        pass
+    
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
