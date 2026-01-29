@@ -16,10 +16,13 @@ if database_url:
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    # Use SQLite for local development
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    db_path = os.path.join(basedir, "instance", "college_notices.db")
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    # Use SQLite - save in /tmp for Render deployment
+    if os.environ.get('RENDER'):
+        db_path = '/tmp/college_notices.db'
+    else:
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, "instance", "college_notices.db")
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
