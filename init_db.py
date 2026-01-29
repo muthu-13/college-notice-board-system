@@ -1,6 +1,7 @@
 from app import app, db, User
 from werkzeug.security import generate_password_hash
 import sys
+import os
 
 try:
     with app.app_context():
@@ -25,9 +26,12 @@ try:
             print("✓ Admin user already exists")
         
         print("\nDatabase initialization completed successfully!")
+        print(f"Database URI: {app.config.get('SQLALCHEMY_DATABASE_URI', 'Not set')}")
         
 except Exception as e:
     print(f"✗ Error initializing database: {str(e)}")
     import traceback
     traceback.print_exc()
-    sys.exit(1)
+    # Don't exit with error in production - let the app handle it
+    if not os.environ.get('RENDER'):
+        sys.exit(1)
