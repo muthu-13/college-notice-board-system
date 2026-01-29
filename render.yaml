@@ -3,12 +3,14 @@ services:
     name: college-notice-board
     runtime: python
     plan: free
-    buildCommand: "chmod +x build.sh && ./build.sh"
-    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1"
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --log-level debug"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: SECRET_KEY
         generateValue: true
+      - key: RENDER
+        value: true
     healthCheckPath: /
     autoDeploy: true
