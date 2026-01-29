@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # College Notice Board System
 
 A comprehensive web-based notice board system built with Flask for managing college notices and announcements.
@@ -269,3 +270,7 @@ Created as a College Notice Board Management System
 ---
 
 **Note**: This is a development version. Please implement additional security measures and testing before deploying to production.
+=======
+# college-notice-board-system
+Flask-project
+>>>>>>> b724028b7efbadf436252ceadb683ebc1a45ff76
