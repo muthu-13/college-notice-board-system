@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - College Notice Board{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-icon">
+            <i class="fas fa-school"></i>
+        </div>
+        <h1>College Notice Board</h1>
+        <p class="hero-tagline">Stay updated with all college announcements and notices</p>
+        <p class="hero-subtext">Access notices from all departments in one place</p>
+    </div>
+
+    <!-- User Type Cards -->
+    <div class="user-type-section">
+        <div class="user-type-card">
+            <div class="user-icon student-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h3>Students</h3>
+            <p>View notices from your department and general announcements</p>
+            <div class="card-actions">
+                <a href="{{ url_for('login') }}" class="btn btn-card-primary">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-card-secondary">Sign Up</a>
+            </div>
+        </div>
+
+        <div class="user-type-card">
+            <div class="user-icon admin-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h3>Admin</h3>
+            <p>Manage notices, user accounts, announcements, and control the notice board</p>
+            <div class="card-actions">
+                <a href="{{ url_for('login') }}" class="btn btn-card-success">Admin Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Public Notices Section -->
+    <div class="public-notices-section">
+        <div class="public-notice-header">
+            <i class="fas fa-eye"></i>
+            <h3>View All Notices (Public)</h3>
+        </div>
+        <p>Browse all published notices without logging in</p>
+        <a href="{{ url_for('public_notices') }}" class="btn btn-view-notices">View All Notices</a>
+    </div>
+</div>
+{% endblock %}

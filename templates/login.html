@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Login - College Notice Board{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-sign-in-alt"></i>
+            <h2>Login to Your Account</h2>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                <input type="text" id="username" name="username" required class="form-control" placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input type="password" id="password" name="password" required class="form-control" placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+            <div class="demo-credentials">
+                <p><strong>Demo Credentials:</strong></p>
+                <p>Username: <code>admin</code> | Password: <code>admin123</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

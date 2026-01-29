@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}College Notice Board{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-graduation-cap"></i> College Notice Board
+            </a>
+            
+            <div class="nav-menu">
+                {% if session.user_id %}
+                    <a href="{{ url_for('home') }}" class="nav-link">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    {% if session.role in ['admin', 'teacher'] %}
+                        <a href="{{ url_for('create_notice') }}" class="nav-link">
+                            <i class="fas fa-plus-circle"></i> Create Notice
+                        </a>
+                        <a href="{{ url_for('my_notices') }}" class="nav-link">
+                            <i class="fas fa-list"></i> My Notices
+                        </a>
+                    {% endif %}
+                    {% if session.role == 'admin' %}
+                        <a href="{{ url_for('manage_users') }}" class="nav-link">
+                            <i class="fas fa-users"></i> Manage Users
+                        </a>
+                    {% endif %}
+                    <span class="nav-user">
+                        <i class="fas fa-user-circle"></i> {{ session.username }} ({{ session.role }})
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="nav-link logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="nav-link">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-info-circle"></i> {{ message }}
+                        <button class="close-btn" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 College Notice Board System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

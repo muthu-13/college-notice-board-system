@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - College Notice Board{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-users"></i> User Management</h1>
+        <p>Manage all registered users in the system</p>
+    </div>
+
+    <div class="users-table-container">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Registered On</th>
+                    <th>Notices</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>
+                        <i class="fas fa-user-circle"></i> {{ user.username }}
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge badge-role-{{ user.role }}">
+                            {{ user.role.capitalize() }}
+                        </span>
+                    </td>
+                    <td>{{ user.department or 'N/A' }}</td>
+                    <td>{{ user.created_at.strftime('%d %b %Y') }}</td>
+                    <td>{{ user.notices|length }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <h3>{{ users|length }}</h3>
+            <p>Total Users</p>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-user-shield"></i>
+            <h3>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h3>
+            <p>Admins</p>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h3>{{ users|selectattr('role', 'equalto', 'teacher')|list|length }}</h3>
+            <p>Teachers</p>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-user-graduate"></i>
+            <h3>{{ users|selectattr('role', 'equalto', 'student')|list|length }}</h3>
+            <p>Students</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
