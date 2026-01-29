@@ -86,9 +86,20 @@ def admin_required(f):
 # Routes
 @app.route('/')
 def index():
-    # Initialize database on first request
+    # Auto-initialize database on first request
     try:
         db.create_all()
+        # Create admin if not exists
+        if not User.query.filter_by(username='admin').first():
+            admin = User(
+                username='admin',
+                email='admin@college.edu',
+                password=generate_password_hash('admin123'),
+                role='admin',
+                department='Administration'
+            )
+            db.session.add(admin)
+            db.session.commit()
     except:
         pass
     return render_template('index.html')
