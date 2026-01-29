@@ -31,11 +31,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': 300,
 }
 
-try:
-    db = SQLAlchemy(app)
-except Exception as e:
-    print(f"Database initialization error: {e}")
-    db = SQLAlchemy(app)
+db = SQLAlchemy(app)
 
 # Models
 class User(db.Model):
