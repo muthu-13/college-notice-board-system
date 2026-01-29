@@ -6,8 +6,18 @@ from functools import wraps
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///college_notices.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+
+# Database configuration - use PostgreSQL in production, SQLite in development
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Render uses postgres:// but SQLAlchemy needs postgresql://
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///college_notices.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -280,5 +290,19 @@ def init_db():
             print("Default admin created - Username: admin, Password: admin123")
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+        # Create default admin if doesn't exist
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                email='admin@college.edu',
+                password=generate_password_hash('admin123'),
+                role='admin',
+                department='Administration'
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Default admin created - Username: admin, Password: admin123")
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: college-notice-board
+    runtime: python
+    buildCommand: "pip install -r requirements.txt && python init_db.py"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: college-notices-db
+          property: connectionString
+    autoDeploy: true
+
+databases:
+  - name: college-notices-db
+    databaseName: college_notices
+    user: college_notices_user
