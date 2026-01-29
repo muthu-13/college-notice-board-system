@@ -109,24 +109,30 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Initialize database on first request
-@app.before_request
-def before_first_request():
-    if not hasattr(app, 'db_initialized'):
-        try:
-            db.create_all()
-            app.db_initialized = True
-        except Exception as e:
-            print(f"Database error: {e}")
+# Initialize database on app startup
+with app.app_context():
+    try:
+        db.create_all()
+        # Create default admin if doesn't exist
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                email='admin@college.edu',
+                password=generate_password_hash('admin123'),
+                role='admin',
+                department='Administration'
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("✓ Database initialized with admin user")
+    except Exception as e:
+        print(f"Database initialization: {e}")
 
 # Routes
 @app.route('/')
 def index():
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        print(f"Error: {e}")
-        return f"<h1>Welcome to College Notice Board</h1><p><a href='/login'>Login</a> | <a href='/register'>Register</a></p>", 200
+    return render_template('index.html')
 
 @app.route('/home')
 @login_required
