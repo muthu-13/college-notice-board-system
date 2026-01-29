@@ -6,7 +6,7 @@ from functools import wraps
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
 
 # Database configuration - use PostgreSQL in production, SQLite in development
 database_url = os.environ.get('DATABASE_URL')
@@ -15,12 +15,42 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print(f"Using PostgreSQL database")
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///college_notices.db'
+    # Use SQLite for local development
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "college_notices.db")}'
+    print(f"Using SQLite database")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
 
 db = SQLAlchemy(app)
+
+# Initialize database tables
+def init_database():
+    """Initialize database and create default admin user"""
+    try:
+        with app.app_context():
+            db.create_all()
+            # Create default admin if doesn't exist
+            admin = User.query.filter_by(username='admin').first()
+            if not admin:
+                admin = User(
+                    username='admin',
+                    email='admin@college.edu',
+                    password=generate_password_hash('admin123'),
+                    role='admin',
+                    department='Administration'
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print("✓ Default admin created")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
 
 # Models
 class User(db.Model):
@@ -68,10 +98,24 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Initialize database on first request
+@app.before_request
+def before_first_request():
+    if not hasattr(app, 'db_initialized'):
+        try:
+            db.create_all()
+            app.db_initialized = True
+        except Exception as e:
+            print(f"Database error: {e}")
+
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        print(f"Error: {e}")
+        return f"<h1>Welcome to College Notice Board</h1><p><a href='/login'>Login</a> | <a href='/register'>Register</a></p>", 200
 
 @app.route('/home')
 @login_required
@@ -290,19 +334,5 @@ def init_db():
             print("Default admin created - Username: admin, Password: admin123")
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        # Create default admin if doesn't exist
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin = User(
-                username='admin',
-                email='admin@college.edu',
-                password=generate_password_hash('admin123'),
-                role='admin',
-                department='Administration'
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("Default admin created - Username: admin, Password: admin123")
+    init_database()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
