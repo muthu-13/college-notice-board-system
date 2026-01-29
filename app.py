@@ -34,35 +34,6 @@ except Exception as e:
     print(f"Database initialization error: {e}")
     db = SQLAlchemy(app)
 
-# Initialize database tables
-def init_database():
-    """Initialize database and create default admin user"""
-    try:
-        with app.app_context():
-            db.create_all()
-            # Import User here to avoid circular import
-            from app import User
-            # Create default admin if doesn't exist
-            admin = User.query.filter_by(username='admin').first()
-            if not admin:
-                admin = User(
-                    username='admin',
-                    email='admin@college.edu',
-                    password=generate_password_hash('admin123'),
-                    role='admin',
-                    department='Administration'
-                )
-                db.session.add(admin)
-                db.session.commit()
-                print("✓ Default admin created")
-            else:
-                print("✓ Admin already exists")
-    except Exception as e:
-        print(f"Database initialization error: {e}")
-                print("✓ Default admin created")
-    except Exception as e:
-        print(f"Database initialization error: {e}")
-
 # Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -109,29 +80,14 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Initialize database on app startup
-with app.app_context():
-    try:
-        db.create_all()
-        # Create default admin if doesn't exist
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin = User(
-                username='admin',
-                email='admin@college.edu',
-                password=generate_password_hash('admin123'),
-                role='admin',
-                department='Administration'
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("✓ Database initialized with admin user")
-    except Exception as e:
-        print(f"Database initialization: {e}")
-
 # Routes
 @app.route('/')
 def index():
+    # Initialize database on first request
+    try:
+        db.create_all()
+    except:
+        pass
     return render_template('index.html')
 
 @app.route('/home')
@@ -351,5 +307,6 @@ def init_db():
             print("Default admin created - Username: admin, Password: admin123")
 
 if __name__ == '__main__':
-    init_database()
+    with app.app_context():
+        init_db()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
