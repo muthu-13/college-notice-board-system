@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block content %}
+<div class="error-container" style="text-align: center; padding: 50px; min-height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div class="error-content" style="max-width: 600px;">
+        <i class="fas fa-server" style="font-size: 80px; color: #e74c3c; margin-bottom: 20px;"></i>
+        <h1 style="font-size: 72px; margin: 20px 0; color: #e74c3c;">500</h1>
+        <h2 style="margin: 20px 0;">Internal Server Error</h2>
+        <p style="color: #7f8c8d; margin: 20px 0; font-size: 18px;">
+            Something went wrong on our end. We're working to fix it.
+        </p>
+        <p style="color: #95a5a6; margin: 10px 0;">
+            Please try again later or contact the administrator if the problem persists.
+        </p>
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin: 5px;">
+                <i class="fas fa-home"></i> Go to Home
+            </a>
+            <a href="javascript:history.back()" class="btn btn-secondary" style="margin: 5px;">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

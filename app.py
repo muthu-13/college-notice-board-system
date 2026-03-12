@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from functools import wraps
@@ -7,6 +8,15 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
+
+# Enable CSRF Protection
+csrf = CSRFProtect(app)
+
+# Session configuration for security
+app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('RENDER') else False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
 
 # Database configuration - use PostgreSQL in production, SQLite in development
 database_url = os.environ.get('DATABASE_URL')
@@ -332,7 +342,64 @@ def init_db():
             db.session.commit()
             print("Default admin created - Username: admin, Password: admin123")
 
+# Error handlers to prevent information disclosure
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('errors/500.html'), 500
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('errors/403.html'), 403
+
+# Security headers middleware
+@app.after_request
+def set_security_headers(response):
+    # Content Security Policy
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none';"
+    )
+    response.headers['Content-Security-Policy'] = csp_policy
+    
+    # Anti-clickjacking: Prevent site from being embedded in frames
+    response.headers['X-Frame-Options'] = 'DENY'
+    
+    # Prevent MIME-sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # XSS Protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Referrer Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # HSTS (Strict-Transport-Security) - only in production with HTTPS
+    if os.environ.get('RENDER'):
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    # Cache control for sensitive pages
+    if request.endpoint in ['login', 'register', 'home', 'create_notice', 'edit_notice']:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    else:
+        response.headers['Cache-Control'] = 'public, max-age=3600'
+    
+    return response
+
 if __name__ == '__main__':
     with app.app_context():
         init_db()
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    # Never use debug=True in production
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

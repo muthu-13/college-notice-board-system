@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}403 - Access Forbidden{% endblock %}
+
+{% block content %}
+<div class="error-container" style="text-align: center; padding: 50px; min-height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div class="error-content" style="max-width: 600px;">
+        <i class="fas fa-lock" style="font-size: 80px; color: #e67e22; margin-bottom: 20px;"></i>
+        <h1 style="font-size: 72px; margin: 20px 0; color: #e67e22;">403</h1>
+        <h2 style="margin: 20px 0;">Access Forbidden</h2>
+        <p style="color: #7f8c8d; margin: 20px 0; font-size: 18px;">
+            You don't have permission to access this resource.
+        </p>
+        <p style="color: #95a5a6; margin: 10px 0;">
+            If you believe this is an error, please contact the administrator.
+        </p>
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin: 5px;">
+                <i class="fas fa-home"></i> Go to Home
+            </a>
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('home') }}" class="btn btn-secondary" style="margin: 5px;">
+                <i class="fas fa-dashboard"></i> Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
